@@ -172,6 +172,6 @@
 
     ![404](../public/images/ch3_404.jpg)
 
-[上一章 程序的基本结构](chapter2/note.md)
+[上一章 程序的基本结构](../Chapter2/note.md)
 
-[下一章 Web 表单](chapter4/note.md)
+[下一章 Web 表单](../Chapter4/note.md)

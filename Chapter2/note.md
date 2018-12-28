@@ -84,6 +84,8 @@
 - 还可以通过重定向的方式跳转到另一个的 `URL`
 - 使用 `abort` 函数生成用于处理错误的响应
 
-[下一章 模板](Chapter3/note.md)
+[上一章 安装](../Chapter1/note.md)
+
+[下一章 模板](../Chapter3/note.md)
 
 
