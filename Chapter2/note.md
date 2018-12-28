@@ -45,6 +45,7 @@
         def user(name):
             return '<h1>Hello, %s!</h1>' % (name,)
     ```
+- 激活虚拟环境 `source activate flaskapp_1.0`
 - 设置环境变量 `FLASK_APP` 为 `hello.py`，设置 `FLASK_ENV` 为 `development`，然后运行 `flask run`
 - 通过本机客户端访问 `http://localhost:5000/`
 

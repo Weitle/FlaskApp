@@ -29,7 +29,7 @@
         <h1>Hello World!</h1>
     ```
     ```
-        # templates/user.hmtl
+        # templates/user.html
         <h1>Hello, {{name}}!</h1>
     ```
 - 运行服务器，访问应用，得到和第二章一致的响应
@@ -50,7 +50,7 @@
 - `Jinja2` 可以使用控制语句改变模板的渲染流程
 - `if` 条件控制语句
     ```
-        {%if user%}
+        {%if name%}
             <h1>Hello, {{user}}!</h1>
         {%else%}
             <h1>Hello, Stranger!</h1>
@@ -109,6 +109,8 @@
     - 程序会查找并加载 `static/css/styles.css` 文件
 ## 使用 Bootstrap 框架（v3.7版本）
 - 使用 `Bootstrap` 框架为应用程序添加样式，下载 `bootstrap` 框架文件并保存在应用的 `static` 目录下
+    - 下载：`wget https://github.com/twbs/bootstrap/releases/download/v3.3.7/bootstrap-3.3.7-dist.zip`
+    - 解压： `unzip bootstrap-3.3.7-dist.zip`，然后将解压后的目录名称修改为 `bootstrap`
 - 下载 `bootstrap.js` 依赖的 `jquery.js` 文件保存在 `bootstrap/js` 目录下
 - 创建基模板文件 `base.html`
     ```
