@@ -28,4 +28,64 @@
 - `WTForms` 支持的 `HTML` 的字段类型有 `BooleanField`、`DateField`、`DateTimeField`、`DecimalField`、`FileField`、`MultipleFileField`、`FloatField`、`IntegerField`、`RadioField`、`SelectField`、`SelectMultipleField`、`SubmitField`、`HiddenFiedl`、`PasswordField`、`TextAreaField`、`FormField`、`FormList` 等
 - `WTForms` 支持的验证函数有 `DataRequired`、`Email`、`EqualTo`、`InputRequired`、`Length`、`IPAddress`、`MacAddress`、`NumberRange`、`Optional`、`Regexp`、`URL`、`AnyOf`、`NoneOf` 等
 
+## 把表单渲染成 `HTML`
+- 可以在模板中调用表单字段，通过视图函数可以把一个表单类实例参数传入模板，然后在模板中生成一个表单
+- `NameForm` 使用示例
+    ```
+        # hello.py
+        # 路由'/'绑定，方式为'GET'和'POST'的请求均由'index'函数处理
+        @app.route('/', methods=['GET', 'POST'])
+        def index():
+            err = None
+            # 常见 NameForm实例，将由视图函数当做参数传给模板
+            form = NameForm()
+            # 'POST'请求处理
+            if request.method == 'POST':
+                # 对请求的'name'参数处理
+                name = request.form['name'].strip()
+                if not name:
+                    err = 'User name is required.'
+                if err is not None:
+                    # 如果存在错误，将错误信息传给模板，通过闪现消息展示
+                    flash(err)
+                else: 
+                    # form.name.data = ''
+                    # 没发生错误，显示欢迎信息
+                    return render_template('index.html', form=form, name=name)
+            # GET请求或处理POST请求发生错误时，返回模板但不返回name参数
+            return render_template('index.html', form=form)
+    ```
+    ```
+        # templates/index.html
+        {% extends 'base.html' %}
+        {% block page_content %}
+        {% with errors = get_flashed_messages() %}
+            {% if errors%}
+            <ul class="alert alert-warning">
+                {% for error in errors %}
+                <li style="list-style:none;">{{ error }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+        <div class="page-header">
+            <h1>Hello, {% if name %}{{name}}{% else %}Stranger{% endif %}!</h1>
+        </div>
+        <form action="{{url_for('index')}}" method="POST">
+            {{form.csrf_token}}
+            <div class="form-group">
+                <label for="name">{{form.name.label.text}}</label>
+                {% if form.name.data %}
+                    <input type="text" class="form-control" id="name" name="name" value="{{form.name.data}}"/>
+                {% else %}
+                    <input type="text" class="form-control" id="name" name="name"/>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <input type="submit" class="btn btn-primary" value="{{form.submit.label.text}}" />
+            </div>
+        </form>
+        {% endblock %}
+    ```
+
 
