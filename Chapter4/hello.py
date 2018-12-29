@@ -1,10 +1,12 @@
-from flask import Flask, render_template, request, flash
+import os
+
+from flask import Flask, render_template, request, flash, redirect, url_for, session
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import Required
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = b"\xef\xe2\xe9\xfaM\xca)\x13\xb8\xf0'\t\xba\x923\xec?G\x88\x8c\x17\xaf@G0\x91^\xc7\r\xd0\xca\xfe"
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or b"\xef\xe2\xe9\xfaM\xca)\x13\xb8\xf0'\t\xba\x923\xec?G\x88\x8c\x17\xaf@G0\x91^\xc7\r\xd0\xca\xfe"
 
 class NameForm(FlaskForm):
     name = StringField('What is your name?', validators=[Required(),])
@@ -14,7 +16,7 @@ class NameForm(FlaskForm):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     err = None
-    # 常见 NameForm实例，将由视图函数当做参数传给模板
+    # 创建 NameForm实例，将由视图函数当做参数传给模板
     form = NameForm()
     # 'POST'请求处理
     if request.method == 'POST':
@@ -31,3 +33,19 @@ def index():
             return render_template('index.html', form=form, name=name)
     # GET请求或处理POST请求发生错误时，返回模板但不返回name参数
     return render_template('index.html', form=form)
+
+@app.route('/welcome', methods=['GET', 'POST'])
+def welcome():
+    form = NameForm()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            # form 字段通过验证
+            name = form.name.data.strip()
+            if name:
+                # name 不是空白字符串，写入 session
+                session['name'] = name
+                return redirect(url_for('welcome'))
+        else:
+            flash('User name is required.')
+    return render_template('welcome.html', form=form, name=session.get('name'))
+    

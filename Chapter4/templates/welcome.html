@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block page_content %}
+{% with errors = get_flashed_messages() %}
+    {% if errors%}
+    <ul class="alert alert-warning">
+        {% for error in errors %}
+        <li style="list-style:none;">{{ error }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+{% endwith %}
+<div class="page-header">
+    <h1>Hello, {% if name %}{{name}}{% else %}Stranger{% endif %}!</h1>
+</div>
+<form action="{{url_for('welcome')}}" method="POST">
+    {{form.csrf_token}}
+    <div class="form-group">
+        <label for="name">{{form.name.label.text}}</label>
+        <input type="text" class="form-control" id="name" name="name" value="{% if name %}{{name}}{% endif %}"/>
+    </div>
+    <div class="form-group">
+        <input type="submit" class="btn btn-primary" value="{{form.submit.label.text}}" />
+    </div>
+</form>
+{% endblock %}
