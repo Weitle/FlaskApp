@@ -165,6 +165,118 @@
         </form>
         {% endblock %}
     ```
+## flash 消息
+- `Flask` 提供了一个闪现功能来反馈请求处理信息
+- 闪现功能在请求结束时记录一个消息，提供且只提供给下一个请求使用，通常在模板中显示闪现的消息
+- `flash()` 函数用于记录一个消息，`get_flashed_messages()` 用于获取消息
+### 简单的例子
+- 视图函数和路由
+    ```
+        # hello.py
+        @app.route('/flash/index')
+        def flash_index():
+            return render_template('flash/index.html')
 
-
+        @app.route('/flash/login', methods=['GET', 'POST'])
+        def flash_login():
+            error = None
+            if request.method == 'POST':
+                if request.form['username'].strip() != 'admin' or request.form['password'] != 'secret':
+                    error = 'Invalid username or password.'
+                else:
+                    flash('You were successfully logged in.')
+                    return redirect(url_for('flash_index'))
+            return render_template('flash/login.html', error=error)
+    ```
+- 实现闪现的基本模板文件 `layout.html`
+    ```
+        # templates/layout.html
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <title>{%block title%}My Application{%endblock%}</title>
+            <link rel="stylesheet" href="{{url_for('static', filename='bootstrap/css/bootstrap.min.css')}}"/>
+        </head>
+        <body>
+            <div class="container">
+                {% with messages = get_flashed_messages() %}
+                    {% if messages %}
+                    <ul class="alert alert-success">
+                        {% for message in messages %}
+                            <li style="list-style:none;">{{message}}</li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                {% endwith %}
+                {% block content %}{% endblock %}
+            </div>
+        </body>
+        </html>
+    ```
+- 继承自 `layout.html` 的 `flash_index` 模板
+    ```
+        # templates/flash/index.html
+        {% extends 'layout.html' %}
+        {% block content %}
+        <h1>Overview</h1>
+        <p>Do you want to <a href="{{url_for('flash_login')}}" class="btn btn-link">log in</a>?</p>
+        {% endblock %}
+    ```
+- 继承自 `layout.html` 的 `flash_login` 模板
+    ```
+        {% extends 'layout.html' %}
+        {% block content %}
+        <h1>Login</h1>
+        {% if error %}
+        <div class="alert alert-danger">
+            <strong>Error: </strong>{{error}}
+        </div>
+        {% endif %}
+        <form action="{{url_for('flash_login')}}" method="POST">
+            <dl>
+                <dt>Username:</dt>
+                <dd>
+                    <input type="text" name="username" id="username" value="{{request.form['username']}}">
+                </dd>
+                <dt>Password:</dt>
+                <dd>
+                    <input type="password" name="password" id="password">
+                </dd>
+            </dl>
+            <p><input type="submit" value="Login"></p>
+        </form>
+        {% endblock %}
+    ```
+### flash 消息的类别
+- 可以在 `flash()` 函数中指定闪现消息的类别：
+    `flash('Invalid password provided.', 'error')`
+- 默认消息的类别为 `message`
+- 在模板中也可以通过 `get_flashed_message()` 函数返回消息的类别，然后根据不同的类别进行不同的展示
+    ```
+        {% with messages = get_flashed_messages(with_categories=true)%}
+            {% if messages %}
+                <ul>
+                    {% for category, message in messages %}
+                        <li class="{{category}}">{{message}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    ```
+### 过滤闪现消息
+- 可以通过传递一个类别列表来过滤 `get_flashed_message()` 返回的结果，有助于在不同位置显示不同类别的消息
+    ```
+        {% with errors = get_flashed_messages(category_filter=['error'])%}
+            {% if errors %}
+                <ul class="alert alert-danger">
+                    {% error in errors %}
+                        <li class="{{category}}">{{error}}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+    ```
 

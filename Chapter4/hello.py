@@ -49,3 +49,18 @@ def welcome():
             flash('User name is required.')
     return render_template('welcome.html', form=form, name=session.get('name'))
     
+
+@app.route('/flash/index')
+def flash_index():
+    return render_template('flash/index.html')
+
+@app.route('/flash/login', methods=['GET', 'POST'])
+def flash_login():
+    error = None
+    if request.method == 'POST':
+        if request.form['username'].strip() != 'admin' or request.form['password'] != 'secret':
+            error = 'Invalid username or password.'
+        else:
+            flash('You were successfully logged in.')
+            return redirect(url_for('flash_index'))
+    return render_template('flash/login.html', error=error)
