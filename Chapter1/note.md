@@ -23,6 +23,205 @@
 
 - 可以看出虚拟环境下的 `flask` 是基于 `python 3.7` 的，与操作系统也是隔离的
 
+## 安装 mysql
+### 使用 rpm 包安装 mysql-5.7
+- 参考[菜鸟教程](http://www.runoob.com/mysql/mysql-install.html)
+    - 创建 `mysql` 用户
+        - `groupadd mysql`
+        - `useradd -g mysql -M -s /sbin/nologin mysql`
+    - 下载并安装
+        - `wget http://repo.mysql.com/mysql-community-release-el7-5.noarch.rpm`
+        - `rpm -ivh mysql-community-release-el7-5.noarch.rpm`
+        - `yum update`
+        - `yum install mysql-server`
+    - 权限设置
+        - `chown mysql:mysql -R /var/lib/mysql`
+    - 初始化 `MySQL`
+        - `mysqld --initialize --user=mysql`
+    - 启动 `MySQL`
+        - `systemctl start mysqld`
+    - 查看 `MySQL` 运行状态
+        - `systemctl status mysqld`
+    - 设置开机自启动
+        - `systemctl enable mysqld`
+    - 使用 `root` 用户通过 'MySQL Client' 客户端连接服务器
+        - mysql -u root
+        - 修改 `root` 用户密码: `set password for 'root'@'localhost'=password('somesecretstring')`
+        - 退出后通过 `root` 用户使用密码连接服务器：`mysql -u root -p`
+### 通过 python 访问 mysql 数据库
+- 在虚拟环境中安装 `PyMySQL` 驱动用于连接服务器
+    - `pip install PyMySQL`
+- 测试数据库环境搭建
+    - 创建数据库 `testdb`
+    - 创建一个对该数据库具有全部权限的用户 `testuser` 并设置密码 `test123`
+    - 创建数据表 `employee`，包含字段：`first_name`，`last_name`，`age`，`gender`，`income`
+- 连接数据库
+    ```
+        # connect.py
+        import pymysql
+
+        # 打开数据库连接
+        db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+        # 使用 cursor() 方法创建一个游标对象 
+        cursor = db.cursor()
+        # 使用 execute() 方法执行查询
+        cursor.execute('select version()')
+        # 使用 fetchone() 方法获取数据
+        data = cursor.fetchone()
+        # 输出结果
+        print('Database version is: %s.' % data)
+        # 关闭数据库连接
+        db.close()
+    ```
+- 创建数据库表
+    ```
+        # create_table.py
+        import pymysql
+
+        db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+        try:
+            cursor = db.cursor()
+            cursor.execute('drop table if exists employee')
+            sql = '''create table if not exists employee(
+                        first_name char(20) not null,
+                        last_name char(20) not null,
+                        age smallint unsigned,
+                        gender char(1) default 'M',
+                        income float(8, 2) default 0
+                    ) ENGINE=InnoDB DEFAULT CHARSET utf8'''
+            cursor.execute(sql)
+            print('table employee is created.')
+        except Exception as e:
+            print('Error: ', e)
+        finally:
+            db.close()
+    ```
+- 数据库插入操作
+    ```
+        import pymysql
+        db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+        sql = "insert into employee values('Mac', 'Mohan', 20, 'M', 2000)"
+        try:
+            cursor = db.cursor()
+            cursor.execute(sql)
+            # 提交到数据库执行
+            db.commit()
+        except:
+            # 发生错误回滚
+            db.rollback()
+        else:
+            # 没发生错误输出成功信息
+            print(u'数据插入成功')
+        finally:
+            db.close()
+    ```
+- 数据库查询操作
+    - `cursor.fetchone()`：获取单条数据，用于获取下一个查询结果集，结果集是一个对象
+    - `cursor.fetchall()`：获取多条数据，用于接收全部的返回结果行
+    - `cursor.rowcount`：只读属性，返回执行 `execute()` 方法后影响的行数
+    - 查询示例1:：查询并返回工资大于1000的所有数据（使用 `fetchall`）
+        ```
+            # fetchall.py
+            import pymysql
+
+            sql = "select * from employee where income > 1000"
+            db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+            try:
+                cursor = db.cursor()
+                cursor.execute(sql)
+                results = cursor.fetchall()
+            except:
+                print('Error: unable to fetch data.')
+            else:
+                for row in results:
+                    # 逐条打印结果
+                    print("First Name: %s, Last Name: %s, Age: %s, Gender: %s, Income: %s" % (row[0], row[1], row[2], row[3], row[4]))
+            finally:
+                db.close()
+        ```
+    - 查询示例2：查询并返回工资大于1000的第一条数据（使用 `fetchone`）
+        ```
+            # fetchone.py
+            import pymysql
+            sql = "select * from employee where income > 1000"
+            db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+            try:
+                cursor = db.cursor()
+                cursor.execute(sql)
+                rowcount = cursor.rowcount
+                row = cursor.fetchone()
+            except:
+                print('Error: unable to fetch data.')
+            else:
+                print('共 %d 条数据' % rowcount)
+                print('第一条数据：')
+                print("First Name: %s, Last Name: %s, Age: %s, Gender: %s, Income: %s" % (row[0], row[1], row[2], row[3], row[4]))
+            finally:
+                db.close()
+        ```
+- 数据库更新操作
+    - 更新示例：将 `employee` 表中性别为 `M` 的年龄加1
+        ```
+            # update.py
+            import pymysql
+            sql = "update employee set age = age + 1 where gender = 'M'"
+            db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+            try:
+                cursor = db.cursor()
+                cursor.execute(sql)
+                # 提交数据库执行
+                db.commit()
+            except:
+                # 发生错误时回滚
+                db.rollback()
+                print(u'更新数据失败')
+            else:
+                # 未发生错误输出成功信息
+                print(u'成功更新 %d 条数据' % cursor.rowcount)
+            finally:
+                db.close()
+        ```
+- 删除操作
+    - 删除操作示例：删除 `employee` 表中 `age` 大于 21 的所有数据
+        ```
+            # delete.py
+            import pymysql
+            sql = "delete from employee where age > %d" % (21,)
+            db = pymysql.connect('localhost', 'testuser', 'test123', 'testdb')
+            try:
+                cursor = db.cursor()
+                cursor.execute(sql)
+                # 提交数据库执行
+                db.commit()
+            except Exception as e:
+                # 发生错误时回滚
+                db.rollback()
+                print(u'删除数据失败')
+                print(e)
+            else:
+                # 未发生错误输出成功信息
+                print(u'成功删除 %d 条数据' % cursor.rowcount)
+            finally:
+                db.close()
+        ```
+- 执行事务操作
+    - 事务机制可以确保数据的一致性
+    - 对于支持事务的数据库，`python` 库在游标建立之时自动开启了一个隐形的事务
+    - `commit` 方法提交游标的所有操作，`rollback`方法回滚当前游标的所有操作
+    - 基本操作结构：
+        ```
+            try:
+                cursor.execute(sql)
+                db.commit()
+            except:
+                db.rollback()
+        ```
+
+
+    
+    
+
+
 
     
 [下一章 程序的基本结构](../Chapter2/note.md)
