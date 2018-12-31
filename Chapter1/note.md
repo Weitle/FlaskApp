@@ -23,7 +23,7 @@
 
 - 可以看出虚拟环境下的 `flask` 是基于 `python 3.7` 的，与操作系统也是隔离的
 
-## 安装 mysql
+## 安装并使用 MySQL
 ### 使用 rpm 包安装 mysql-5.7
 - 参考[菜鸟教程](http://www.runoob.com/mysql/mysql-install.html)
     - 创建 `mysql` 用户
@@ -216,12 +216,73 @@
             except:
                 db.rollback()
         ```
+## 安装并使用 MongoDB
+- 参考菜鸟教程 [MongoDB - 菜鸟教程](http://www.runoob.com/mongodb/mongodb-tutorial.html)
+### Linux 平台安装 MongoDB
+- 下载地址：`https://www.mongodb.com/download-center#community`
+- 选择版本，下载安装
+    - 下载：`wget https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel70-4.0.5.tgz`
+    - 解压：`tar -xvzf mongodb-linux-x86_64-rhel70-4.0.5.tgz`
+    - 将解压包移动到指定目录：`mv mongodb-linux-x86_64-rhel70-4.0.5 /usr/local/mongodb`
+    - 将 `mongodb` 可执行文件添加到 `PATH` 路径中：
+        `export PATH=/usr/local/mongodb/bin:$PATH`
+- 创建数据库目录
+    - `MongoDB` 数据存储在 `data/db` 目录，需要手动创建这个目录 `mkdir -p /var/data/db`
+- 运行 `MongoDB` 服务
+    - 通过执行 `mongod` 命令来启动 `mongodb` 服务
+    - `mongodb` 默认数据库目录是 `/data/db`，可以通过 `--dbpath` 参数指定
+    - 后台运行：`mongod --dbpath=/var/data/db --logpath=/var/data/db/log/mongod.log --fork`
+- 设置开机自启动
+    - 编辑配置文件 `/etc/mongodb.cnf`
+        ```
+            # mongodb.cnf
+            # mongodb 参数说明：
+            # --dbpath: 数据库路径（数据文件）
+            # --logpath: 日志文件路径
+            # --master: 指定为主机器
+            # --slave: 指定为从机器
+            # --source: 指定主及其的 IP 地址
+            # --pologSize: 指定日志文件大小（建议不超过64M）
+            # --logappend: 日志文件末尾添加
+            # --port: 启用端口
+            # --fork: 在后台运行
+            # --only: 指定只复制哪一个数据库
+            # --auth: 是否需要验证权限登录（使用用户名和密码）
+            dbpath=/var/data/db
+            logpath=/var/data/db/log/mongod.log
+            logappend=true
+            port=27017
+            fork=true
+            bind_ip=0.0.0.0 
+        ```
+    - 在 `/lib/systemd/system` 目录下新建文件 `mongodb.service`:
+        ```
+            # /lib/systemd/system/mongodb.service
+            [Unit]
+            Description=mongodb
+            After=network.target remote-fs.target nss-lookup.target
+
+            [Service]
+            Type=forking
+            ExecStart=/usr/local/mongodb/bin/mongod --config /etc/mongodb.cnf
+            ExecReload=/bin/kill -s HUP $MAINPID
+            ExecStop=/usr/local/mongodb/bin/mongod --shutdown --config /etc/mongodb.cnf
+            PrivateTmp=true
+
+            [Install]
+            WantedBy=multi-user.target
+        ```
+    - 设置权限：`chmod 754 mongodb.service`
+    - 启动关闭服务，设置开机自启动
+        ```
+            # 启动服务
+            systemctl start mongodb.service
+            # 关闭服务
+            systemctl stop mongodb.service
+            # 设置开机自启动
+            systemctl enable mongodb.service
+        ```
 
 
-    
-    
 
-
-
-    
 [下一章 程序的基本结构](../Chapter2/note.md)
