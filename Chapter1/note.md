@@ -456,24 +456,85 @@
                 # InsertManyResult 对象包含 inserted_ids 属性，该属性保存着所有插入文档的 id
                 print(result.inserted_ids)
             ```
+            - 执行效果
+
+                ![insert_many](../public/images/ch1_insert_many.jpg)
+
     - 插入指定 `_id` 的多个文档
         ```
             # mongo/insert_by_id.py
             import pymongo
-            client = pymongo.MongoClient('mongdodb://localhost:27017')
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
             runoob = client['runoob']
-            sites2 = runoob['sites']
+            sites2 = runoob['sites2']
             sites = [
-                { "_id": 1, "name": "RUNOOB", "cn_name": "菜鸟教程"},
-                { "_id": 2, "name": "Google", "address": "Google 搜索"},
-                { "_id": 3, "name": "Facebook", "address": "脸书"},
-                { "_id": 4, "name": "Taobao", "address": "淘宝"},
-                { "_id": 5, "name": "Zhihu", "address": "知乎"}
+                { "_id": 11, "name": "RUNOOB", "cn_name": "菜鸟教程"},
+                { "_id": 12, "name": "Google", "address": "Google 搜索"},
+                { "_id": 13, "name": "Facebook", "address": "脸书"},
+                { "_id": 14, "name": "Taobao", "address": "淘宝"},
+                { "_id": 15, "name": "Zhihu", "address": "知乎"}
             ]
 
-            result = sites.insert_many(sites)
-            print(result.inserted_id)
+            result = sites2.insert_many(sites)
+            print(result.inserted_ids)
         ```
+        - 执行效果：
+
+            ![insert_by_id](../public/images/ch1_insert_by_id.jpg)
+- 查询文档：使用 `find` 和 `find_one`
+    - 查询一条数据
+        ```
+            # mongo/find_one.py
+            import pymongo
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 查询一条数据
+            doc = collection.find_one()
+            print(doc)
+            print('Id: ', doc['_id'])
+            print('Name: ', doc['name'])
+            print('URL: ', doc['url'])
+        ```
+        - 执行效果
+
+            ![find_one](../public/images/ch1_find_one.jpg)
+    - 查询集合中所有文档
+        ```
+            # mongo/find.py
+            import pymongo
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 获取所有数据
+            sites = collection.find()
+            for site in sites:
+                print('Id: {}, Name: {}, URL: {}'.format(site['_id'], site['name'], site['url']))
+        ```
+        - 执行效果
+
+            ![find_all](../public/images/ch1_find.jpg)
+
+    - 通过 `find()` 方法查询指定字段的数据
+        - 将要返回的字段对应值设置为1或将不返回的字段对应值设置为0
+        - 除了 `_id` 外，不能在一个对象中同时指定0和1，即只设置值为0的字段或只设置值为1的字段
+        - 示例
+            ```
+                # mongo/find_name_and_url.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 获取 name 和 url 字段
+                sites = collection.find({}, {'_id': 0, 'name': 1, 'url': 1})
+                for site in sites:
+                    print('Name: {}, URL: {}'.format(site['name'], site['url']))
+            ```
+        - 执行效果
+
+            ![find_name_and_url](../public/images/ch1_find_name_and_url.jpg)
+
+
 
 
 
