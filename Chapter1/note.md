@@ -282,6 +282,71 @@
             # 设置开机自启动
             systemctl enable mongodb.service
         ```
+### Mongo 基本概念
+- 数据库 `database`
+    - 一个 `mongodb` 中可以创建多个数据库，默认的数据库为 `db`，保存在 `data` 目录中
+    - `MongoDB` 的单个实例可以容纳多个独立的数据库，每个数据库都有自己的集合和权限，不同数据库放置在不同的文件中
+    - 常用命令：
+        - 显示所有数据库列表：`show dbs`
+        - 显示当前数据库对象或集合：`db`
+        - 连接到指定的数据库：`use db_name`
+    - 保留数据库名：
+        - `admin`：`root` 数据库，如果将一个用户添加到这个数据库，该用户将自动继承所有数据库权限，一些特定的服务器端命令也只能从这个数据库运行，比如列出所有数据库或关闭服务器
+        - `local`：用来存储咸鱼本地单台服务器的任意集合，该数据库永远不会被复制
+        - `config`：当 `Mongo` 用于分片设置时，`config` 数据库在内部使用，用于保存分片的信息
+- 文档 `document`
+    - 一个文档对应一条记录，与关系型数据库中的行类似
+    - 文档是一组键值对，`MongoDB` 的文档不需要设置相同的属性字段，并且相同的属性不一定有相同的数据类型
+    - 一个文档示例：
+        `{'site': 'www.runoob.com', 'name': '菜鸟教程'}`
+- 集合 'collection'
+    - 集合是 `MongoDB` 文党组，类似于关系型数据库中的表
+    - 在集合中可以插入不同格式和类型的数据，但通常情况下插入集合的数据都有一定的关联性
+    - 当第一个文档被插入时，集合就会被创建
+    - `capped collections`：固定大小的 `collection`
+        - 创建语句：`db.createCollection('myCollection', {capped: true, size: 10000})`
+        - 必须显示创建一个 `capped collection`，并制定一个 `collection` 的大小，`collection` 的数据存储空间值是提前分配的
+        - 在 `Capped Collection` 中可以添加新的对象，可以按照插入的顺序保存文档，文档在磁盘上的位置也是按照插入顺序来保存
+        - 能进行更新文档，但更新后的文档不可以炒作之前文档的大小，这样就可以确保所有文档在磁盘上的位置一直保持不变
+        - 使用 `Capped Collection` 不能删除一个文档，可以用 `drop()` 方法删除 `collection` 的所有文档，删除后必须显示地重新创建这个 `collection`
+- 元数据 `meta data`
+    - 数据库的信息存储在集合中，使用了系统的命名空间：`dbname.system.*`
+    - 该命名空间中是包含多种系统信息的特殊集合：
+        - `dbname.system.namespaces`：列出所有名字空间
+        - `dbname.system.indexes`：列出所有索引
+        - `dbname.system.profile`：包含数据库概要（`profile`）信息
+        - `dbname.system.users`：列出所有可以访问数据库的用户
+        - `dbname.local.sources`：包含复制对端（`slave`）的服务器信息和状态
+- `MongoDB` 数据类型
+    - `Mongo` 支持的数据类型有：`String`、`Integer`、`Boolean`、`Double`、`Min/Max Keys`、`Array`、`Timestamp`、`Object`、`Null`、`Symbol`、`Date`、`Object ID`、`Binar Data`、`Code`、`Regular Expression`
+    - `ObjectId` 类似卫衣主键，`MongoDB` 存储的文档必须有一个 `_id` 键，可以是任何类型，但默认是 `ObjectId` 对象
+    - `ObjectId` 包含 `12 bytes`：前4个字节表示 `unix` 时间戳，然后3个字节是机器码标识符，然后两个字节由进程 `id` 组成 `PID`，最后三个字节是随机数
+    -  `ObjectId` 中保存了创建的时间戳，所以不需要为文档保存创建时间戳字段，可以通过文档对象的 `getTimestamp()` 函数来获取创建的时间
+    - `String` 都使用 `utf8` 编码
+    - `Date`：表示当前距离 `Unix` 新纪元的毫秒数，日期类型是有符号的，负数表示1970年以前的日期
+
+### 使用 python 访问 MongoDB
+- 在虚拟环境中安装 `PyMongo` 驱动访问 `MongoDB`
+    `pip install pymongo`
+- 测试 `PyMongo`
+    ```
+        $ python
+        >>> import pymongo
+    ```
+    如果没有错误信息，表示安装成功
+- 创建数据库
+    - 创建一个数据库，需要使用 `MongoClient` 对象，并制定连接的 `URL` 地址和要创建的数据库名称
+    - 如下实例中，使用的数据库为 `runoob`
+    ```
+        # mongo/create.py
+        import pymongo
+        myclient = pymongo.MongoClient('mongodb://localhost:27017/')
+        mydb= myclient['runoob']
+    ```
+    - 在 `MongoDB` 中，数据库只有在内容插入后才被创建，即数据库创建后要创建集合并插入一个文档后，数据库才真正被创建
+    - 
+
+
 
 
 
