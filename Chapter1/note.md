@@ -393,7 +393,87 @@
 - 插入文档
     - 在 `MongoDB` 中插入一个文档类似于在关系型数据库表中插入一行
     - 使用 `insert_one()` 方法在集合中插入一个文档，该方法的第一个参数是字典类型
-        
+        ```
+            # mongo/insert_one.py
+            import pymongo
+            mongo_client = pymongo.MongoClient('mongodb://localhost:27017/')
+            # 创建数据库
+            db = mongo_client['runoob']
+            # 创建集合
+            collection = db['sites']
+
+            # 由于在集合中没插入文档，此时数据库和集合都未真正创建成功
+            dblist = mongo_client.list_database_names()
+            print('已有数据库：', dblist)
+            collections = db.list_collection_names()
+            print('当前数据库中的集合列表：', collections)
+
+            # 向集合中插入文档
+            doc = {'name': 'runoob', 'url': 'https://www.runoob.com'}
+            result = collection.insert_one(doc)
+            print(result)
+
+            # 插入文档后，集合和数据库真正被创建
+            dblist = mongo_client.list_database_names()
+            print('已有数据库：', dblist)
+            collections = db.list_collection_names()
+            print('当前数据库中的集合列表：', collections)
+        ```
+        - `python insert_one.py` 的执行效果如下图：
+
+            ![insert_one](../public/images/ch1_insert_one.jpg)
+    - 返回 `_id` 字段：`insert_one()` 方法返回 `InsertOneResult` 对象，该对象包含 `inserted_id` 属性，是插入文档的 `id` 值
+        ```
+            # mongo/inserted_id.py
+            import pymongo
+
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            doc = collection.insert_one({'name': 'Google', 'url': 'https://www.google.com'})
+            print(doc.inserted_id)
+        ```
+        - 如果在插入文档时没有指定 `_id`，`MongoDB` 会为每一个文档添加一个唯一的 `id`
+    - 插入多个文档 `insert_many`
+        - 使用 `insert_many()` 方法在集合中插入多个文档，该方法的第一个参数是一个字典列表
+            ```
+                # mongo/insert_many.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                runoob = client['runoob']
+                sites = runoob['sites']
+                mylist = [
+                    { "name": "Taobao", "alexa": "100", "url": "https://www.taobao.com" },
+                    { "name": "QQ", "alexa": "101", "url": "https://www.qq.com" },
+                    { "name": "Facebook", "alexa": "10", "url": "https://www.facebook.com" },
+                    { "name": "知乎", "alexa": "103", "url": "https://www.zhihu.com" },
+                    { "name": "Github", "alexa": "109", "url": "https://www.github.com" }
+                ]
+
+                result = sites.insert_many(mylist)
+                # insert_many() 方法返回一个 InsertManyResult 对象
+                print(result)
+                # InsertManyResult 对象包含 inserted_ids 属性，该属性保存着所有插入文档的 id
+                print(result.inserted_ids)
+            ```
+    - 插入指定 `_id` 的多个文档
+        ```
+            # mongo/insert_by_id.py
+            import pymongo
+            client = pymongo.MongoClient('mongdodb://localhost:27017')
+            runoob = client['runoob']
+            sites2 = runoob['sites']
+            sites = [
+                { "_id": 1, "name": "RUNOOB", "cn_name": "菜鸟教程"},
+                { "_id": 2, "name": "Google", "address": "Google 搜索"},
+                { "_id": 3, "name": "Facebook", "address": "脸书"},
+                { "_id": 4, "name": "Taobao", "address": "淘宝"},
+                { "_id": 5, "name": "Zhihu", "address": "知乎"}
+            ]
+
+            result = sites.insert_many(sites)
+            print(result.inserted_id)
+        ```
 
 
 
