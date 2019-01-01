@@ -337,15 +337,63 @@
 - 创建数据库
     - 创建一个数据库，需要使用 `MongoClient` 对象，并制定连接的 `URL` 地址和要创建的数据库名称
     - 如下实例中，使用的数据库为 `runoob`
-    ```
-        # mongo/create.py
-        import pymongo
-        myclient = pymongo.MongoClient('mongodb://localhost:27017/')
-        mydb= myclient['runoob']
-    ```
+        ```
+            # mongo/create.py
+            import pymongo
+            myclient = pymongo.MongoClient('mongodb://localhost:27017/')
+            mydb= myclient['runoob']
+            print(mydb)
+        ```
     - 在 `MongoDB` 中，数据库只有在内容插入后才被创建，即数据库创建后要创建集合并插入一个文档后，数据库才真正被创建
-    - 
+    - 判断数据库是否已存在（真正创建成功）
+        ```
+            # mongo/dblist.py
+            import pymongo
 
+            myclient = pymongo.MongoClient('mongodb://localhost:27017/')
+            dblist = myclient.list_database_names()
+            if 'runoob' in dblist:
+                print('数据库创建成功')
+            else:
+                print('数据库未创建成功')
+        ```
+    - 执行 `python create.py` 时创建的 `runoob` 数据库是一个 `Database` 对象，但执行 `python dblist.py` 可以看出该数据库并未真正创建成功
+    
+        ![mongo_create_db](../public/images/ch1_mongo_create.jpg)
+
+        ![mongo_dblist](../public/images/ch1_mongo_dblist.jpg)
+
+- 创建集合
+    - `MongoDB` 使用数据库对象来创建集合：
+        ```
+            # mongo/create_collection.py
+            import pymongo
+
+            myclient = pymongo.MongoClient('mongodb://localhost:27017/')
+            mydb = myclient['runoob']
+
+            # 创建集合 sites
+            sites = mydb['sites']
+            print(sites)
+        ```
+    - 集合也只有在插入内容后才会被真正创建
+    - 通过数据库对象的 `list_collection_names()` 方法来判断集合是否已经存在
+        ```
+            # mongo/collection_list.py
+            import pymongo
+            myclient = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = myclient['runoob']
+            # 获取数据库对象下的所有集合列表
+            collections = db.list_collection_names()
+            if 'sites' in collections:
+                print(u'集合已存在')
+            else:
+                print(u'集合不存在')
+        ```
+- 插入文档
+    - 在 `MongoDB` 中插入一个文档类似于在关系型数据库表中插入一行
+    - 使用 `insert_one()` 方法在集合中插入一个文档，该方法的第一个参数是字典类型
+        
 
 
 
