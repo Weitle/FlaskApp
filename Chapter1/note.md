@@ -533,8 +533,245 @@
         - 执行效果
 
             ![find_name_and_url](../public/images/ch1_find_name_and_url.jpg)
+    - 根据指定条件查询
+        - 通过在 `find()` 中设置参数来过滤数据
+            ```
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 设置查询条件
+                condition = {'name': 'runoob'}
+                results = collection.find(condition)
+                for result in results:
+                    print('Id: {}, Name: {}, URL: {}'.format(result['_id'], result['name'], result['url']))
+            ```
+            - 执行效果
 
+                ![find_by_condition](../public/images/find_by_condition.jpg)
 
+        - 在查询的条件语句中，还可以使用修饰符，如表示大于的修饰符为 `$gt`
+            ```
+                # mongo/find_by_symbol.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 获取 name 字段中第一个 ASCII 字符大于 'H' 的数据
+                sites = collection.find({'name':{'$gt': 'H'}})
+                for site in sites:
+                    print('Id: {}, Name: {}, URL: {}'.format(site['_id'], site['name'], site['url']))
+            ```
+            - 执行效果
+
+                ![find_by_symbol](../public/images/ch1_find_by_symbol.jpg)
+
+        - 还可以使用正则表达式修饰符进行查询，正则表达式只用于搜索字符串字段
+            ```
+                # mongo/find_by_regex.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 获取 name 字段中第一个字符为 'G' 的数据
+                sites = collection.find({'name':{'$regex': '^G'}})
+                for site in sites:
+                    print('Id: {}, Name: {}, URL: {}'.format(site['_id'], site['name'], site['url']))
+            ```
+            - 执行效果
+
+                ![find_by_regex](../public/images/ch1_find_by_regex.jpg)
+
+    - 指定返回条数记录
+        - 对查询结果设置指定条数的记录可以使用 `limit()` 方法，该方法只接收一个数字参数
+            ```
+                # mongo/find_limit.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 返回3条记录
+                sites = collection.find().limit(3)
+                for site in sites:
+                    print('Id: {}, Name: {}, URL: {}'.format(site['_id'], site['name'], site['url']))
+            ```
+            - 执行效果
+
+                ![find_limit](../public/images/ch1_find_limit.jpg)
+
+- 修改文档
+    - 使用 `update_one()` 方法修改文档中的记录
+    - 该方法接收两个参数，第一个是查询的条件，第二个是要修改的字段
+    - 如果查找到的匹配数据多于一条，则只会修改第一条记录
+        ```
+            # mongo/update_one.py
+            import pymongo
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 输出修改前的所有记录
+            print('Before update:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+            # 查询 name 字段中含有 'oo' 字符的记录，将第一条记录的 alexa 属性修改为 '12345'
+            collection.update_one({'name': {'$regex': 'oo'}}, {'$set': {'alexa': '12345'}})
+            # 输出修改后的所有记录
+            print('After update:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+        ```
+        - 执行效果
+
+            ![update_one](../public/images/ch1_update_one.jpg)
+    - 可以使用 `update_many()` 修改所有匹配的记录
+    - `update_one` 和 `update_many` 方法的返回结果都有一个 `modified_count` 属性，表示成功修改的记录的条数
+        ```
+            # mongo/update_many.py
+            import pymongo
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 输出修改前的所有记录
+            print('Before update:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+            # 查询 name 字段中含有 'oo' 字符的记录，将第一条记录的 alexa 属性修改为 '123'
+            result = collection.update_many({'name': {'$regex': 'oo'}}, {'$set': {'alexa': '123'}})
+            print(u'成功修改 {} 条记录'.format(result.modified_count))
+            # 输出修改后的所有记录
+            print('After update:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+        ```
+        - 执行效果
+
+            ![update_many](../public/images/update_many.jpg)
+
+- 数据排序
+    - 使用 `sort()` 方法可以指定升序或降序培训
+    - `sort()` 方法第一个参数为要排序的字段，第二个参数指定排序规则：1为升序，-1为降序，默认升序
+        ```
+            import pymongo
+            client = pymongo.MongoClient('mongodb://192.168.18.16:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 查询所有记录并按 'alexa' 字段降序排序
+            sites = collection.find().sort('alexa', -1)
+            for site in sites:
+                print(site)
+        ```
+        - 执行效果
+
+            ![sort_desc](../public/images/ch1_sort_desc.jpg)
+- 删除数据
+    - 使用 `delete_one` 方法删除一个文档，使用 `delete_many` 方法删除多个文档
+    - 这两个方法第一个参数为查询对象，指定要删除那些数据
+    - 返回结果对象有一个属性 `deleted_count`，表示成功删除的记录条数
+        ```
+            # mongo/delete_one.py
+            import pymongo
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 输出删除前的所有记录
+            print('Before deleted:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+            # 删除 name 字段中含有 'oo' 字符的第一条记录
+            result = collection.delete_one({'name': {'$regex': 'oo'}})
+            print(u'成功删除 {} 条记录'.format(result.deleted_count))
+            # 输出删除后的所有记录
+            print('After deleted:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+        ```
+        - 执行效果
+
+            ![delete_one](../public/images/ch1_delete_one.jpg)
+    
+        ```
+            # mongo/delete_many.py
+            import pymongo
+            client = pymongo.MongoClient('mongodb://localhost:27017/')
+            db = client['runoob']
+            collection = db['sites']
+            # 输出删除前的所有记录
+            print('Before deleted:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+            # 删除 name 字段中含有 'oo' 字符的第一条记录
+            result = collection.delete_one({'name': {'$regex': 'oo'}})
+            print(u'成功删除 {} 条记录'.format(result.deleted_count))
+            # 输出删除后的所有记录
+            print('After deleted:')
+            sites = collection.find()
+            for site in sites:
+                print(site)
+        ```
+        - 执行效果：
+
+            ![delete_many](../public/images/ch1_delete_many.jpg)
+
+    - 删除集合中所有文档
+        - 使用 `delete_many()` 方法且传入一个空的查询对象时会删除集合中的所有文档
+            ```
+                # mongo/delete_all.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 输出删除前的所有记录
+                print('Before deleted:')
+                sites = collection.find()
+                for site in sites:
+                    print(site)
+                # 删除所有记录
+                result = collection.delete_many({})
+                print(u'成功删除 {} 条记录'.format(result.deleted_count))
+                # 输出删除后的所有记录
+                print('After deleted:')
+                sites = collection.find()
+                print('Count of sites:', sites.count())
+
+                # 查看集合是否还存在
+                collections = db.list_collection_names()
+                if 'sites' in collections:
+                    print('集合还存在')
+                else:
+                    print('集合已不存在')
+            ```
+            - 执行效果
+
+                ![delete_all](../public/images/ch1_delete_all.jpg)
+
+    - 删除集合
+        - 使用 `drop()` 方法删除一个集合
+            ```
+                # mongo/drop_sites.py
+                import pymongo
+                client = pymongo.MongoClient('mongodb://localhost:27017/')
+                db = client['runoob']
+                collection = db['sites']
+                # 删除集合前查看集合是列表
+                print('Before droped:')
+                collections = db.list_collection_names()
+                print('collections', collections)
+                # 删除集合后查看集合列表
+                collection.drop()
+                print('After droped:')
+                collections = db.list_collection_names()
+                print('collections', collections)
+            ```
+            - 执行效果
+
+                ![drop_sites](../public/images/ch1_drop_sites.jpg)
 
 
 
