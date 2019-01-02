@@ -548,7 +548,7 @@
             ```
             - 执行效果
 
-                ![find_by_condition](../public/images/find_by_condition.jpg)
+                ![find_by_condition](../public/images/ch1_find_by_condition.jpg)
 
         - 在查询的条件语句中，还可以使用修饰符，如表示大于的修饰符为 `$gt`
             ```
@@ -649,7 +649,7 @@
         ```
         - 执行效果
 
-            ![update_many](../public/images/update_many.jpg)
+            ![update_many](../public/images/ch1_update_many.jpg)
 
 - 数据排序
     - 使用 `sort()` 方法可以指定升序或降序培训
