@@ -772,7 +772,24 @@
             - 执行效果
 
                 ![drop_sites](../public/images/ch1_drop_sites.jpg)
-
+## uwsgi 安装配置
+- `python` 的 `Web` 框架自带的 `Web` 服务器一般用于开发环境，而不是生产环境
+- `WSGI(Web Server Gateway Interface)` 标准规定了一种在 `Web` 服务器和 `Web` 应用框架/程序之间的接口
+- `uwsgi` 是一个 `Web` 服务器，实现了 `WSGI`、`uwsgi`、`http` 等协议，其中 `uwsgi` 协议是 `uwsgi` 服务器自带的协议，用于在 `uwsgi` 服务器和其它网络服务器之间的数据通信
+### python 安装 uwsgi
+- 虚拟环境下使用 `pip install uwsgi` 命令安装
+### 第一个 WSGI 应用
+- 从 `Hello World` 开始
+    ```
+        # hello.py
+        def application(env, start_response):
+            start_response('200 OK', [('Content-Type', 'text/html')])
+            return [b'Hello World!']
+    ```
+    - 函数定义为 `application` 是因为 `uWSGI Python` 加载器默认会搜索 `application()`
+- 将其部署 `HTTP` 端口 8000
+    - 启动 `uWSGI` 来运行一个 `HTTP` 服务器/路由器，传递用户请求到 `WSGI` 应用
+        `wsgi --http :8000 --wsgi-file hello.py`
 
 
 
