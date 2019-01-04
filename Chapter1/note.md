@@ -790,6 +790,128 @@
 - 将其部署 `HTTP` 端口 8000
     - 启动 `uWSGI` 来运行一个 `HTTP` 服务器/路由器，传递用户请求到 `WSGI` 应用
         `wsgi --http :8000 --wsgi-file hello.py`
+    - 此时会出现如下异常：
+
+        ![uwsgi_error1](../public/images/ch1_uwsgi_error1.jpg)
+        - 使用 `ldd` 查看缺少的包
+            `ldd $ANACONDA_INSTALL_PATH/envs/flaskapp_1.0/bin/uwsgi`
+
+            ![uwsgi_notfound](../public/images/ch1_uwsgi_notfound.jpg)
+        - 发现 `uwsgi` 缺少三个包，把 `anaconda3/lib` 下相应的包软链接到 `/lib64` 下
+            ```
+                # ln -s $ANACONDA_INSTALL_PATH/lib/libicui18n.so.58 /lib64/libicui18n.so.58
+                # ln -s $ANACONDA_INSTALL_PATH/lib/libicuuc.so.58 /lib64/libicuuc.so.58
+                ln -s $ANACONDA_INSTALL_PATH/lib/libicudata.so.58 /lib64/libicudata.so.58
+            ```
+    - 链接完成后再次运行 `uwsgi` 发现缺少 `CXXABI_1.3.8` 及 `CXXABI_1.3.9` 等
+
+        ![uwsgi_error2](../public/images/uwsgi_error2.jpg)
+        - 需要把 `anaconda3` 下的 `libstdc++.so.6` 移到 `/lib64` 下，而且 `libstdc++.so.6` 就是 `libstdc++.so.6.0.24` 的软链接，进行如下操作：
+            ```
+                # cp $ANACONDA3_INSTALL_PATH/lib/libstdc++.so.6.0.24 /lib64/
+                # rm -rf /lib64/libstdc++.so.6
+                # ln -s /lib64/libstdc++.so.6.0.24 /lib64/libstdc++.so.6
+            ```
+    - 再次在虚拟环境下运行 `uwsgi --http :8000 --wsgi-file hello.py` 启动应用
+    - 访问 `uwsgi` 应用服务：
+        ![hello_world](../public/images/ch1_uwsgi_helloworld.jpg)
+
+- 如果有前端 `Web` 服务器（如 `Nginx`）时，不要使用 `--http` 选项，而是要使用 `--http-socket` 选项
+
+### 添加并发和应用
+- 默认情况下，`uWSGI` 启动一个单一的进程和单一的线程
+- 可以使用 `--processes` 添加更多的进行，或者使用 `--threads` 来添加更多的线程：
+    ```
+        uwsgi --http :8000 --usgi-file hello.py --master --processes 4 --threads 2
+    ```
+    - 上述命名会产生4个进程（每个进行2个线程），一个主进程以及 `HTTP` 路由器
+- 还可以使用 `--stats` 选项添加监控，可以以 `JSON` 格式输出 `uWSGI` 内部数据到某个端口
+- 也可以安装 `uwsgitop` （`pip install uwsgitop`）来查看监控数据
+
+### 结合 Web 服务器使用
+- 可以将 `uwsgi` 和 `Nginx` 服务器结合使用，实现更高的并发性能
+- 安装 `Nginx`:
+    ```
+        # yum install gcc gcc-c++
+        # yum install pcre pcre-devel
+        # yum install zlib zlib-devel
+        # yum install openssl openssl-devel
+        # wget https://nginx.org/download/nginx-1.12.2.tar.gz
+        # tar xvzf nginx-1.12.2.tar.gz
+        # cd nginx
+        # ./configure --prefix=/usr/local/nginx         # 配置 Nginx 的安装目录
+        # make && make install
+    ```
+- 启动/停止 `Nginx`
+    ```
+        # cd /usr/local/nginx/sbin
+        # ./nginx               # 启动服务器
+        # ./nginx -s quit       # 等待 nginx 进程处理完任务后停止
+        # ./nginx -s stop       # 查出 nginx 进程 id 然后用 kill 命令直接杀死进程
+        # ./nginx -s reload     # 重启 nginx
+    ```
+- 启动服务器后，执行 `curl http://localhost/`，效果如下：
+
+    ![welcome_to_nginx](../public/images/ch1_welcome_to_nginx.jpg)
+
+- 设置开机自启动
+    - 在 `/lib/systemd/system` 目录下新建文件 `nginx.service`：
+        ```
+            # /lib/systemd/system/nginx.service
+            [Unit]
+            Description=The NGINX HTTP and reverse proxy server
+            After=syslog.target network.target remote-fs.target nss-lookup.target
+
+            [Service]
+            Type=forking
+            PIDFile=/usr/local/nginx/logs/nginx.pid
+            ExecStartPre=/usr/local/nginx/sbin/nginx -t
+            ExecStart=/usr/local/nginx/sbin/nginx
+            ExecReload=/usr/local/nginx/sbin/nginx -s reload
+            ExecStop=/bin/kill -s QUIT $MAINPID
+            PrivateTmp=true
+
+            [Install]
+            WantedBy=multi-user.target
+        ```
+    - 设置权限：`chmod 754 nginx.service`
+    - 启动、关闭服务，设置开机自启动
+        ```
+            # 启动服务
+            # systemctl start nginx.service
+            # 关闭服务
+            # systemctl stop nginx.service
+            # 设置开机自启动
+            # systemctl enable nginx.service
+        ```
+    - 修改 `/usr/local/nginx/conf/nginx.conf` 文件来配置 `nginx` 并使用 `uwsgi` 模块
+        ```
+            # /usr/local/nginx/conf/nginx.conf
+            service {
+                listen 8000;        # 监听 8000 端口
+                ......
+                location / {
+                    include uwsgi_params;
+                    uwsgi_pass 127.0.0.1:4021;  # 将 nginx 接收的 Web 请求传递给运行在 4021 端口的 uwsgi 服务来处理
+                }
+            }
+        ```
+    - 启动 `uWSGI` 服务
+        ```
+            uwsgi --socket 127.0.0.1:4021 --wsgi-file hello.py --master --process 4 --thread 2
+        ```
+        - 通过浏览器访问 `localhost:8000/`，效果如下：
+
+            ![nginx_uwsgi_hello](../public/images/ch1_nginx_uwsgi_htllo.jpg)
+
+
+
+
+
+    
+        
+    
+
 
 
 
