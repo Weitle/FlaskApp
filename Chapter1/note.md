@@ -896,58 +896,60 @@
                 }
             }
         ```
-    - 启动 `uWSGI` 服务
-        ```
-            uwsgi --socket 127.0.0.1:4021 --wsgi-file hello.py --master --process 4 --thread 2
-        ```
-        - 通过浏览器访问 `localhost:8000/`，效果如下：
+- 启动 `uWSGI` 服务
+    ```
+        uwsgi --socket 127.0.0.1:4021 --wsgi-file hello.py --master --process 4 --thread 2
+    ```
+    - 通过浏览器访问 `localhost:8000/`，效果如下：
 
-            ![nginx_uwsgi_hello](../public/images/ch1_nginx_uwsgi_hello.jpg)
-    - 通过 `uwsgi.ini` 配置文件启动 `uWSGI` 服务
+        ![nginx_uwsgi_hello](../public/images/ch1_nginx_uwsgi_hello.jpg)
+- 通过 `uwsgi.ini` 配置文件启动 `uWSGI` 服务
+    ```
+        # uwsgi.ini
+        [uwsgi]
+        socket = 127.0.0.1:4021             # 服务运行在本机的 4021 端口
+        chdir = /home/weitao/projects
+        uwsgi-file = FlaskApp/Chapter1/hello.py
+        processes = 4
+        threads = 2
+        master = 1                          # 主线程
+
+        pidfile = %(chdir)/uwsgi/uwsgi.pid
+        stats = %(chdir)/uwsgi/uwsgi.status
+    ```
+    - 在虚拟环境中运行 `uwsgi --ini uwsgi.ini` 启动 `uWSGI` 服务
+    - 通过浏览器访问 `Web` 服务器的 `8000` 端口，效果和命令行启动 `uWSGI` 服务一致
+- 设置 `uWSGI` 服务开机自启动
+    - 创建文件 `/lib/systemd/system/uwsgi.service`
         ```
-            # uwsgi.ini
-            [uwsgi]
-            socket = 127.0.0.1:4021             # 服务运行在本机的 4021 端口
-            chdir = /home/weitao/projects
-            uwsgi-file = FlaskApp/Chapter1/hello.py
-            processes = 4
-            threads = 2
-            master = 1                          # 主线程
+            # /lib/systemd/system/uwsgi.service
+            [Unit]
+            Description=uwsgi
+            After=network.target
 
-            pidfile = %(chdir)/uwsgi/uwsgi.pid
-            stats = %(chdir)/uwsgi/uwsgi.status
+            [Service]
+            Type=forking
+            PIDFile=/home/weitao/projects/uwsgi/uwsgi.pid
+            ExecStart=/home/weitao/anaconda3/envs/flaskapp_1.0/bin/uwsgi --ini /home/weitao/projects/uwsgi.ini
+            ExecReload=/home/weitao/anaconda3/envs/flaskapp_1.0/bin/uwsgi --reload $PIDFile
+            ExecStop=/home/weitao/anaconda3/envs/flaskapp_1.0/bin/uwsgi --stop $PIDFile
+            PrivateTmp=true
+
+            [Install]
+            WantedBy=multi-user.target
         ```
-        - 在虚拟环境中运行 `uwsgi --ini uwsgi.ini` 启动 `uWSGI` 服务
-        - 通过浏览器访问 `Web` 服务器的 `8000` 端口，效果和命令行启动 `uWSGI` 服务一致
-    - 设置 `uWSGI` 服务开机自启动
-        - 创建文件 `/lib/systemd/system/uwsgi.service`
-            ```
-                # /lib/systemd/system/uwsgi.service
-                [Unit]
-                Description=uwsgi
-                After=network.target
-
-                [Service]
-                Type=forking
-                PIDFile=/home/weitao/projects/uwsgi/uwsgi.pid
-                ExecStart=/home/weitao/anaconda3/envs/flaskapp_1.0/bin/uwsgi --ini /home/weitao/projects/uwsgi.ini
-                ExecReload=/home/weitao/anaconda3/envs/flaskapp_1.0/bin/uwsgi --reload $PIDFile
-                ExecStop=/home/weitao/anaconda3/envs/flaskapp_1.0/bin/uwsgi --stop $PIDFile
-                PrivateTmp=true
-
-                [Install]
-                WantedBy=multi-user.target
-            ```
-        - 设置权限：`chmod 754 uwsgi.service`
-        - 启动、关闭服务，设置开机自启动
-            ```
-                # 启动服务
-                # systemctl start uwsgi.service
-                # 关闭服务
-                # systemctl stop uwsgi.service
-                # 设置开机自启动
-                # systemctl enable uwsgi.service
-            ```
+    - 设置权限：`chmod 754 uwsgi.service`
+    - 启动、关闭服务，设置开机自启动
+        ```
+            # 启动服务
+            # systemctl start uwsgi.service
+            # 关闭服务
+            # systemctl stop uwsgi.service
+            # 设置开机自启动
+            # systemctl enable uwsgi.service
+        ```
+- 部署 `Flask`
+    - 修改 `uwsgi.ini` 配置文件，将 `uwsgi-file` 配置项设置为 `Flask` 应用的入口文件，添加 `callable` 配置项设置为 `Flask` 应用的名称，如 `callable = app`
 
 
 
