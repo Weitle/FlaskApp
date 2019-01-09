@@ -49,8 +49,16 @@
         - 修改 `root` 用户密码: `set password for 'root'@'localhost'=password('somesecretstring')`
         - 退出后通过 `root` 用户使用密码连接服务器：`mysql -u root -p`
 ### 通过 python 访问 mysql 数据库
+- `python2` 一般使用 `MySQLdb` 驱动访问 `MySQL` 数据库，`python3` 通过 `PyMysql` 驱动访问 `MySQL` 数据库
 - 在虚拟环境中安装 `PyMySQL` 驱动用于连接服务器
     - `pip install PyMySQL`
+- 使用 `PyMySQL` 代替 `MySQLdb`
+    - `flask-sqlalchemy` 数据库框架使用 `MySQLdb` 驱动访问 `MySQL` 数据库
+    - 可以在应用主文件中指定使用 `PyMySQL` 代替 `MySQLdb`
+        ```
+            import pymysql
+            pymysql.install_as_MySQLdb()
+        ```
 - 测试数据库环境搭建
     - 创建数据库 `testdb`
     - 创建一个对该数据库具有全部权限的用户 `testuser` 并设置密码 `test123`

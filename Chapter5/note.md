@@ -27,3 +27,7 @@
             app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
             db = SQLAlchemy(app)
         ```
+        - `db` 对象是 `SQLAlchemy` 类的实例，表示程序正在使用的数据库
+## 定义模型
+- 在 `ORM` 中，模型一般是一个 `Python` 类，类中的属性对应数据表中的列
+
