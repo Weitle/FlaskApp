@@ -300,14 +300,14 @@
     - 一个文档示例：
         `{'site': 'www.runoob.com', 'name': '菜鸟教程'}`
 - 集合 'collection'
-    - 集合是 `MongoDB` 文党组，类似于关系型数据库中的表
+    - 集合是 `MongoDB` 文档组，类似于关系型数据库中的表
     - 在集合中可以插入不同格式和类型的数据，但通常情况下插入集合的数据都有一定的关联性
     - 当第一个文档被插入时，集合就会被创建
     - `capped collections`：固定大小的 `collection`
         - 创建语句：`db.createCollection('myCollection', {capped: true, size: 10000})`
         - 必须显示创建一个 `capped collection`，并制定一个 `collection` 的大小，`collection` 的数据存储空间值是提前分配的
         - 在 `Capped Collection` 中可以添加新的对象，可以按照插入的顺序保存文档，文档在磁盘上的位置也是按照插入顺序来保存
-        - 能进行更新文档，但更新后的文档不可以炒作之前文档的大小，这样就可以确保所有文档在磁盘上的位置一直保持不变
+        - 能进行更新文档，但更新后的文档不可以超过之前文档的大小，这样就可以确保所有文档在磁盘上的位置一直保持不变
         - 使用 `Capped Collection` 不能删除一个文档，可以用 `drop()` 方法删除 `collection` 的所有文档，删除后必须显示地重新创建这个 `collection`
 - 元数据 `meta data`
     - 数据库的信息存储在集合中，使用了系统的命名空间：`dbname.system.*`
