@@ -85,8 +85,62 @@
 - 还可以通过重定向的方式跳转到另一个的 `URL`
 - 使用 `abort` 函数生成用于处理错误的响应
 
+## 命令行接口
+- 虚拟环境中安装 `Flask` 同时会安装 `flask` 脚本，在终端中执行该脚本可以操作内建的、扩展的和应用定义的命令
+### 加载应用
+- 为了使用 `flask` 脚本，必须告诉它在哪里可以找到应用，通过 `FLASK_APP` 环境变量用于定义如何加载应用
+- `FLASK_APP` 的几个典型值：
+    - 空，`wsgi.py` 文件被导入，自动探测应用（`app`）
+    - `FLASK_APP=hello`，名称被导入，自动探测一个应用（`app`）或者工厂（`create_app`）
+- `FLASK_APP` 分为三个部分：可选路径，用于设置应用目录；应用文件名（默认类型为`.py`）；可选的实例或者工厂的变量名称。如：
+    - `FLASK_APP=src/hello`：导入 `src` 目录下的 `hello.py` 文件中的应用
+    - `FLASK_APP=hello.web`：导入当前目录下的 `hello.web` 文件中的应用
+    - `FLASK_APP=hello:app2`：导入当前目录下 `hello.py` 文件中的 `app2` 应用
+    - `FLASK_APP=hello:create_app('dev')`：导入当前目录下 `hello.py` 文件中 `create_app` 工厂方法返回的应用实例，使用 `dev` 作为参数
+- 根据给定的导入，命令默认会查找一个名为 `app` 或 `application` 的应用实例
+### 运行开发服务器
+- 使用 `run` 方法可以启动开发服务器
+    - `$ flask run`
+### 使用 shell
+- 使用 `flask shell` 命令可以开启一个交互的 `python shell`，同时一个应用情景被激活，应用实例会被导入
+### 自定义命令
+- `flask` 命令使用 `Click` 实现
+- 添加自定义命令示例：
+    - 添加 `create_user` 命令，带有 `name` 参数
+        ```
+            # hello.py
+            import click
+            from flask import Flask
+
+            app = Flask(__name__)
+
+            @app.cli.command()
+            @click.argument('name')
+            def create_user(name):
+                ...
+            # 命令行中创建 `admin` 用户
+            $ flask create_user admin
+        ```
+    - 还可以以命令组的方式添加一组相关的命令
+        ```
+            # hello.py
+            import click
+            from flask import Flask
+            from flask.cli import AppGroup
+
+            app = Flask(__name__)
+            user_cli = AppGroup('user')
+
+            @user_cli.command('create')
+            @click.argument('name')
+            def create_user(name)
+                ...
+            
+            app.cli.add_command(user_cli)
+            # 命令行中创建用户 `admin`
+            $ flask user create admin 
+        ```
+
 [上一章 安装](../Chapter1/note.md)
 
 [下一章 模板](../Chapter3/note.md)
-
-
