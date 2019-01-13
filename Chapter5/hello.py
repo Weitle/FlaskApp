@@ -2,8 +2,10 @@ import os
 from flask import Flask, request, session, redirect, url_for, render_template
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
-from wtforms.validators import Required
+from wtforms.validators import DataRequired
 from flask_sqlalchemy import SQLAlchemy
+import click
+from flask_migrate import Migrate, MigrateCommand
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://testuser:test123@192.168.18.16/testdb'
@@ -11,10 +13,11 @@ app.config['SQLALCHEMY_COMMIT_ON_TEARDOWN'] = True
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY') or b"\xef\xe2\xe9\xfaM\xca)\x13\xb8\xf0'\t\xba\x923\xec?G\x88\x8c\x17\xaf@G0\x91^\xc7\r\xd0\xca\xfe"
 
 class NameForm(FlaskForm):
-    name = StringField('What is your name?', validators=[Required(),])
+    name = StringField('What is your name?', validators=[DataRequired(),])
     submit = SubmitField('Submit')
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # 定义模型
 class Role(db.Model):
@@ -52,6 +55,11 @@ def index():
         form.name.data = ''
         return redirect(url_for('index'))
     return render_template('index.html', form=form, name=session.get('name'), known=session.get('known', False))
+
+@app.shell_context_processor
+def make_shell_context():
+    return dict(app=app, db=db, User=User, Role=Role, dbMigrate=MigrateCommand)
+
 
 if __name__ == '__main__':
     app.run()

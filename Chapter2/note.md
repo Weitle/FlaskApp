@@ -141,6 +141,7 @@
             $ flask user create admin 
         ```
 
+
 [上一章 安装](../Chapter1/note.md)
 
 [下一章 模板](../Chapter3/note.md)
