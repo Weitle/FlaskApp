@@ -116,9 +116,9 @@
             >>> db.session.add(admin)
             >>> db.session.add(mod)
             >>> db.session.add(user)
-            >> db.session.add(john)
-            >> db.session.add(susan)
-            >> db.session.add(david)
+            >>> db.session.add(john)
+            >>> db.session.add(susan)
+            >>> db.session.add(david)
         ```
     - 或使用 `db.session.add_all()` 方法添加对象列表
     - 调用 `db.session.commit()` 方法提交会话，把改动写入到数据库
@@ -210,6 +210,7 @@
     `pip install Flask-Migrate`
 ### 示例
 - 通过 `Flask-Migrate` 处理 `Flask` 应用的数据库迁移
+- 使用以下命令前首先将之前创建的 `roles` 和 `users` 表删除
     ```
         # hello.py
         from flask import Flask
@@ -274,6 +275,10 @@
     ```
 ### 更新数据库
 - 使用 `$ flask db upgrade` 将迁移脚本中的改动应用的数据库
+- 执行成功后，登录数据库查询数据表创建结果如下：
+
+    ![create_table_by_migrate](../public/images/ch5_create_table_by_migrate.jpg)
+    
 - 每次数据库模型更改时都要重复使用 `migrate` 和 `upgrade` 命令
 
 [上一章 Web 表单](../Chapter4/note.md)
