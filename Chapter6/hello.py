@@ -32,7 +32,7 @@ def send_email(to, subject, template, **kwargs):
 
 # 定义表单
 class NameForm(FlaskForm):
-    name = NameForm("What's your name?", validators=[DataRequired(),])
+    name = StringField("What's your name?", validators=[DataRequired(),])
     submit = SubmitField('Submit')
 
 # 定义模型
@@ -46,18 +46,17 @@ class User(db.Model):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     form = NameForm()
-    if form.validate_on_subject():
+    if form.validate_on_submit():
         user = User.query.filter_by(username=form.name.data.strip()).first()
         if user is None:
             user = User(username = form.name.data.strip())
             db.session.add(user)
             session['known'] = False
-            if app.config['FLASK_ADMIN']:
-                send_email(app.config['FLASK_ADMIN'], 'New User', 'mail/new_user', user=user)
+            if app.config['FLASKY_ADMIN']:
+                send_email(app.config['FLASKY_ADMIN'], 'New User', 'mail/new_user', user=user)
         else:
             session['known'] = True
         session['name'] = form.name.data.strip()
-        from.name.data = ''
+        form.name.data = ''
         return redirect(url_for('index'))
-    return render_template('index.html', form=form, name=session.get('name'), known=session.get(;known), False)
-
+    return render_template('index.html', form=form, name=session.get('name'), known=session.get('known', False))
