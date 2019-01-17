@@ -105,6 +105,23 @@
                 return redirect(url_for('index'))
             return render_template('index.html', form=form, name=session.get('name'), known=session.get('known', False))
     ```
+## 异步发送电子邮件
+- 可以把发送电子邮件的函数移到后台线程中
+    ```
+        # hello.py
+        from threading import Thread
+        def send_async_email(app, msg):
+            with app.app_context():
+                mail.send(msg)
+        
+        def send_email(to, subject, template, **kwargs):
+            msg = Message(app.config['FLASKY_MAIL_SUBJECT'] + subject, sender=app.config['MAIL_DEFAULT_SENDER'], recipients=[to])
+            msg.body = render_template(template + '.txt', **kwargs)
+            msg.html = render_template(template + '.html', **kwargs)
+            thr = Thread(target=send_async_email, args=[app, msg])
+            thr.start()
+            return thr
+    ```
 
 
 [上一章 数据库](../Chapter5/note.md)
