@@ -6,3 +6,5 @@ Flask Web 开发：基于Python3的Web应用开发实战
 - [第四章、Web 表单](Chapter4/note.md)
 - [第五章、数据库](Chapter5/note.md)
 - [第六章、电子邮件](Chapter6/note.md)
+- [第七章、大型程序的结构](Chapter7/note.md)
+- [第八章、用户认证](Chapter8/note.md)
